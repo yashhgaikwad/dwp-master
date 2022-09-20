@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        PATH = ${M2_HOME}
+        PATH = "${M2_HOME}"
     }
      stages
      {
