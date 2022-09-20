@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        PATH = "C:\Program Files\apache-maven-3.8.6\bin"
+        PATH = ${M2_HOME}
     }
      stages
      {
