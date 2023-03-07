@@ -1,0 +1,34 @@
+#  Template maven-build
+#  This template allows you to test and build your Java project with Maven.
+#  The workflow allows running tests, code checkstyle and security scans on the default branch.
+# Prerequisites: pom.xml and appropriate project structure should exist in the repository.
+image: maven:3.6.3-jdk-11
+options:
+  docker: true
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Build
+          caches:
+            - maven
+          image: maven:3.6.3-jdk-11
+          script:
+            - mvn clean install
+          artifacts:
+            - target/dwp-0.0.1-SNAPSHOT.jar
+      - step:
+          image: atlassian/pipelines-awscli
+          script:
+            # Change credentials to AWS DEV account and login to ECR.
+            - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            - eval $(aws ecr get-login --region ${AWS_DEFAULT_REGION} --no-include-email)
+            # build and push docker image to DEV
+            - export BUILD_ID=${BITBUCKET_BUILD_NUMBER}
+            - docker build -t ${AWS_REGISTRY_URL}:${BUILD_ID} .
+            - env
+            - docker push ${AWS_REGISTRY_URL}:${BUILD_ID}
+            - docker tag ${AWS_REGISTRY_URL}:${BUILD_ID} ${AWS_REGISTRY_URL}
+            - docker push ${AWS_REGISTRY_URL}
+
